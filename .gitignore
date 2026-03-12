@@ -13,3 +13,6 @@ project_plan.md
 
 # temporary dev outputs
 sample_data.csv
+
+# DuckDB data files
+data/

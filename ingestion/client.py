@@ -12,8 +12,7 @@ import requests
 BASE_URL = "https://www.alphavantage.co/query"
 RATE_LIMIT_DELAY = 15  # seconds between calls to stay within 5/min
 
-SYMBOLS = ["SPY", "QQQ"]
-# SYMBOLS = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA"]
+SYMBOLS = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA"]
 
 
 def get_daily_ohlcv(symbol: str, api_key: str | None = None) -> list[dict]:

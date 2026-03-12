@@ -1,7 +1,6 @@
 """Pipeline entry point.
 
-Currently: fetches OHLCV data from Alpha Vantage and prints a summary.
-Future steps (not yet implemented): upsert to DuckDB, run dbt, run dbt tests.
+Orchestrates: fetch from Alpha Vantage -> upsert to DuckDB -> (future: dbt run).
 
 Usage:
     python -m scheduler.run_pipeline
@@ -12,22 +11,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from ingestion.client import fetch_symbols, SYMBOLS
+from ingestion.loader import get_connection, load_records, log_run_start, log_run_end
 
 
 def main() -> None:
-    print(f"Fetching data for: {SYMBOLS}")
-    records = fetch_symbols(SYMBOLS)
-    print(f"Fetched {len(records)} records across {len(SYMBOLS)} symbols")
-    if records:
-        print("Sample record:", records[0])
+    conn = get_connection()
+    run_id = log_run_start(conn, SYMBOLS)
 
-        # Temp for dev. Will write to DuckDB eventually
-        import csv
-        with open("sample_data.csv", "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=records[0].keys())
-            writer.writeheader()
-            writer.writerows(records)
-        print("Written to sample_data.csv")
+    try:
+        print(f"Fetching data for: {SYMBOLS}")
+        records = fetch_symbols(SYMBOLS)
+        print(f"Fetched {len(records)} records across {len(SYMBOLS)} symbols")
+
+        count = load_records(records, conn=conn)
+        print(f"Loaded {count} records into DuckDB")
+
+        log_run_end(conn, run_id, status="success", record_count=count)
+    except Exception as e:
+        log_run_end(conn, run_id, status="failed", error_message=str(e))
+        raise
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
