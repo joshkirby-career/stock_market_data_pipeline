@@ -2,6 +2,15 @@
 
 Usage:
     python query_db.py
+
+Interactive querying:
+    Run from the project root (stock_market_data_pipeline/):
+
+    >>> import duckdb
+    >>> conn = duckdb.connect('data/stock_ticker_data.duckdb', read_only=True)
+    >>> conn.sql('SELECT * FROM stg_market_prices LIMIT 5')
+    >>> conn.sql('SELECT symbol, COUNT(*) FROM stg_market_prices GROUP BY symbol')
+    >>> conn.close()
 """
 
 import duckdb

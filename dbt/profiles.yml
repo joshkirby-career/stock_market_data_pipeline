@@ -1,0 +1,10 @@
+# Database connection config. Tells dbt how to connect to the data warehouse.
+# Most teams keep this in ~/.dbt/profiles.yml to avoid committing credentials.
+# We keep it in-repo since DuckDB is a local file with no secrets.
+
+stock_market_data_pipeline:  # Must match the "profile:" value in dbt_project.yml
+  target: dev                # Which output to use by default (can have dev, prod, etc.)
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/stock_ticker_data.duckdb  # Relative path to our local DuckDB file

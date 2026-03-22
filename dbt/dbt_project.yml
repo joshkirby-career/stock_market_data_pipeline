@@ -1,0 +1,27 @@
+# Every dbt project requires this file. It defines the project name,
+# where dbt should look for models/tests, and default configurations.
+
+name: stock_market_data_pipeline
+version: "1.0.0"
+
+# Must match a profile name in profiles.yml — this is how dbt knows
+# which database connection to use.
+profile: stock_market_data_pipeline
+
+# Tell dbt where to find SQL models and test files.
+model-paths: ["models"]
+test-paths: ["tests"]
+
+# Directories that `dbt clean` will delete (generated artifacts).
+clean-targets:
+  - target
+  - dbt_packages
+
+# Default configurations applied to all models under each folder.
+# The "+" prefix means "apply this config to all models in this folder."
+models:
+  stock_market_data_pipeline:
+    staging:
+      # "view" = saved SQL query in the database, re-runs on every read.
+      # "table" = physically stored results.
+      +materialized: view

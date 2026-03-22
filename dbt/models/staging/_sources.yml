@@ -1,0 +1,31 @@
+# Declares tables that exist outside of dbt (created by our Python ingestion).
+# This lets models reference them with {{ source('raw', 'raw_market_prices') }}
+# instead of hardcoding table names, and enables source freshness checks.
+
+version: 2
+
+sources:
+  - name: raw              # Logical name we use in {{ source('raw', ...) }}
+    schema: main           # The DuckDB schema where the table lives
+    tables:
+      - name: raw_market_prices
+        description: "Daily OHLCV data ingested from Alpha Vantage"
+        columns:
+          - name: symbol
+            description: "Ticker symbol (e.g. SPY, AAPL)"
+          - name: date
+            description: "Trading date"
+          - name: open
+            description: "Opening price"
+          - name: high
+            description: "Intraday high price"
+          - name: low
+            description: "Intraday low price"
+          - name: close
+            description: "Closing price"
+          - name: volume
+            description: "Shares traded"
+          - name: inserted_datetime
+            description: "Timestamp when the record was first ingested"
+          - name: updated_datetime
+            description: "Timestamp when the record was last updated"

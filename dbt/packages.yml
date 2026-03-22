@@ -1,0 +1,9 @@
+# Third-party dbt packages (like pip requirements for Python).
+# Run `dbt deps` to install these into the dbt_packages/ folder.
+
+packages:
+  # dbt_utils is the standard utility library maintained by dbt Labs.
+  # Provides extra generic tests (expression_is_true, accepted_range, etc.)
+  # and SQL helpers (date_spine, surrogate_key, pivot, etc.).
+  - package: dbt-labs/dbt_utils
+    version: [">=1.0.0", "<2.0.0"]
