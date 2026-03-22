@@ -25,3 +25,11 @@ models:
       # "view" = saved SQL query in the database, re-runs on every read.
       # "table" = physically stored results.
       +materialized: view
+    intermediate:
+      # Intermediate models are also views — lightweight SQL logic
+      # that doesn't need to be physically stored.
+      +materialized: view
+    marts:
+      # Marts are tables — persisted results that dashboards query directly.
+      # Faster reads since data is pre-computed, not recalculated on every query.
+      +materialized: table
