@@ -1,0 +1,41 @@
+# Tests for the intermediate models.
+# These validate that window function calculations produced sensible results
+# before the data flows into the mart layer.
+
+version: 2
+
+models:
+  - name: int_daily_returns
+    description: "Day-over-day price returns per symbol, computed via LAG()"
+    columns:
+      - name: symbol
+        data_tests:
+          - not_null
+      - name: trading_date
+        data_tests:
+          - not_null
+      - name: close_price
+        data_tests:
+          - not_null
+    data_tests:
+      # Each symbol+date should appear exactly once.
+      - unique:
+          arguments:
+            column_name: "symbol || '-' || trading_date"
+
+  - name: int_moving_averages
+    description: "7-day and 30-day simple moving averages per symbol"
+    columns:
+      - name: symbol
+        data_tests:
+          - not_null
+      - name: trading_date
+        data_tests:
+          - not_null
+      - name: close_price
+        data_tests:
+          - not_null
+    data_tests:
+      - unique:
+          arguments:
+            column_name: "symbol || '-' || trading_date"
