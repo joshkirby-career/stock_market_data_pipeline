@@ -13,19 +13,46 @@ sources:
         columns:
           - name: symbol
             description: "Ticker symbol (e.g. SPY, AAPL)"
+            data_tests:
+              - not_null
           - name: date
             description: "Trading date"
+            data_tests:
+              - not_null
           - name: open
             description: "Opening price"
+            data_tests:
+              - not_null
           - name: high
             description: "Intraday high price"
+            data_tests:
+              - not_null
           - name: low
             description: "Intraday low price"
+            data_tests:
+              - not_null
           - name: close
             description: "Closing price"
+            data_tests:
+              - not_null
           - name: volume
             description: "Shares traded"
+            data_tests:
+              - not_null
           - name: inserted_datetime
             description: "Timestamp when the record was first ingested"
           - name: updated_datetime
             description: "Timestamp when the record was last updated"
+        # Table-level tests on the raw source.
+        data_tests:
+          # Primary key: each symbol+date pair should be unique.
+          - unique:
+              arguments:
+                column_name: "symbol || '-' || date"
+          # Prices should be positive.
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "close > 0"
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "high >= low"
