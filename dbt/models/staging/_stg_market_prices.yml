@@ -1,0 +1,62 @@
+# Documents and tests the stg_market_prices model.
+# The leading "_" in the filename is a convention meaning
+# "this is a config/docs file, not a SQL model."
+
+version: 2
+
+models:
+  - name: stg_market_prices
+    description: "Cleaned daily OHLCV data with renamed columns"
+    columns:
+      - name: symbol
+        description: "Ticker symbol"
+        data_tests:
+          - not_null                          # Built-in dbt test: fails if any nulls exist
+          - accepted_values:                  # Built-in dbt test: fails if value not in list
+              arguments:
+                values: ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA"]
+
+      - name: trading_date
+        description: "Trading date"
+        data_tests:
+          - not_null
+
+      - name: open_price
+        description: "Opening price"
+        data_tests:
+          - not_null
+
+      - name: high_price
+        description: "Intraday high"
+        data_tests:
+          - not_null
+
+      - name: low_price
+        description: "Intraday low"
+        data_tests:
+          - not_null
+
+      - name: close_price
+        description: "Closing price"
+        data_tests:
+          - not_null
+
+      - name: volume
+        description: "Shares traded"
+        data_tests:
+          - not_null
+
+    # Model-level tests (not tied to a single column).
+    data_tests:
+      # Built-in uniqueness test on a composite key (symbol + date).
+      - unique:
+          arguments:
+            column_name: "symbol || '-' || trading_date"
+      # dbt_utils tests — prefixed because they come from the dbt_utils package.
+      # expression_is_true: fails if any row violates the SQL expression.
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "close_price > 0"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "high_price >= low_price"

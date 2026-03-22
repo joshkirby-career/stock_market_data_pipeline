@@ -13,6 +13,13 @@ project_plan.md
 
 # temporary dev outputs
 sample_data.csv
+query_db.py
 
 # DuckDB data files
 data/
+
+# dbt
+dbt/dbt_packages/
+dbt/target/
+dbt/logs/
+dbt/package-lock.yml
