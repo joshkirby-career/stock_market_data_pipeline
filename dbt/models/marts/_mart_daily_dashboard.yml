@@ -1,0 +1,44 @@
+# Tests for the mart_daily_dashboard model.
+# These are "business trust" tests — they verify the final output
+# that downstream consumers (the Streamlit dashboard) will rely on.
+
+version: 2
+
+models:
+  - name: mart_daily_dashboard
+    description: "Wide table joining daily returns and moving averages, one row per symbol per trading day"
+    columns:
+      - name: symbol
+        description: "Ticker symbol"
+        data_tests:
+          - not_null
+
+      - name: trading_date
+        description: "Trading date"
+        data_tests:
+          - not_null
+
+      - name: close_price
+        description: "Closing price"
+        data_tests:
+          - not_null
+
+      - name: daily_return_pct
+        description: "Day-over-day return as a percentage (NULL for earliest date per symbol)"
+
+      - name: ma_7d
+        description: "7-day simple moving average of close price"
+
+      - name: ma_30d
+        description: "30-day simple moving average of close price"
+
+    # Model-level tests
+    data_tests:
+      # Each symbol+date combination should appear exactly once.
+      - unique:
+          arguments:
+            column_name: "symbol || '-' || trading_date"
+      # Sanity check: close price should always be positive.
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "close_price > 0"
