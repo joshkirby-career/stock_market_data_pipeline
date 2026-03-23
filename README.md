@@ -1,6 +1,6 @@
 # Stock Market Data Pipeline
 
-An end-to-end data pipeline that ingests live daily stock market data from Alpha Vantage, transforms it through a layered dbt model, and serves it for analysis. Built with Python, DuckDB, and dbt.
+An end-to-end data pipeline that ingests live daily stock market data from Alpha Vantage, transforms it through a layered dbt model, and serves it via an interactive Streamlit dashboard. Built with Python, DuckDB, dbt, and Streamlit.
 
 ## Architecture
 
@@ -32,6 +32,8 @@ If any test fails, the pipeline stops. Raw data is never lost — it's already p
 - **Python** — ingestion, orchestration
 - **DuckDB** — local analytical database (no server needed)
 - **dbt** (dbt-duckdb adapter) — SQL transformations and testing
+- **Streamlit** — interactive dashboard with per-chart filters
+- **Plotly** — interactive charts (price lines, bar charts, normalized comparison)
 - **Alpha Vantage** — free-tier stock market API
 
 ## Project Structure
@@ -51,6 +53,8 @@ stock_market_data_pipeline/
 │       ├── staging/           # Column renaming, source declaration, data sanity tests
 │       ├── intermediate/      # Window function calculations (returns, moving averages)
 │       └── marts/             # Final joined table for dashboard consumption
+├── dashboard/
+│   └── app.py                 # Streamlit dashboard with Plotly charts
 ├── data/                      # Local DuckDB file (gitignored)
 └── .env                       # API key (gitignored)
 ```
