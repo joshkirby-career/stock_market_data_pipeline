@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compile Python files
+        run: python -m compileall ingestion scheduler dashboard
+
+      - name: Install dbt packages
+        run: dbt deps --project-dir dbt
+
+      - name: Parse dbt project
+        run: dbt parse --project-dir dbt --profiles-dir dbt
