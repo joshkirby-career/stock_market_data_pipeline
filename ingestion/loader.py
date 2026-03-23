@@ -1,7 +1,7 @@
 """DuckDB loader for OHLCV data.
 
 Handles connection management, schema initialization, idempotent upserts
-into raw_market_prices, and ingestion run logging.
+into raw_market_prices, and pipeline run logging.
 """
 
 from datetime import datetime, timezone
@@ -38,16 +38,19 @@ def _init_schema(conn: duckdb.DuckDBPyConnection) -> None:
             PRIMARY KEY (symbol, date)
         )
     """)
-    conn.execute("CREATE SEQUENCE IF NOT EXISTS ingest_runs_seq START 1")
+    conn.execute("CREATE SEQUENCE IF NOT EXISTS pipeline_runs_seq START 1")
     conn.execute("""
-        CREATE TABLE IF NOT EXISTS ingest_runs (
-            run_id        INTEGER PRIMARY KEY DEFAULT nextval('ingest_runs_seq'),
-            started_at    TIMESTAMP NOT NULL,
-            ended_at      TIMESTAMP,
-            status        VARCHAR NOT NULL,
-            symbols       VARCHAR NOT NULL,
-            record_count  INTEGER,
-            error_message VARCHAR
+        CREATE TABLE IF NOT EXISTS pipeline_runs (
+            pipeline_run_id INTEGER PRIMARY KEY DEFAULT nextval('pipeline_runs_seq'),
+            started_at      TIMESTAMP NOT NULL,
+            ended_at        TIMESTAMP,
+            overall_status  VARCHAR NOT NULL,
+            ingest_status   VARCHAR,
+            dbt_status      VARCHAR,
+            failed_phase    VARCHAR,
+            error_message   VARCHAR,
+            record_count    INTEGER,
+            symbols         VARCHAR NOT NULL
         )
     """)
 
@@ -87,25 +90,57 @@ def load_records(records: list[dict], conn: duckdb.DuckDBPyConnection) -> int:
 
 
 def log_run_start(conn: duckdb.DuckDBPyConnection, symbols: list[str]) -> int:
-    """Insert a new ingest_runs row with status 'running'. Returns the run_id."""
+    """Insert a new pipeline_runs row with status 'running'. Returns the pipeline_run_id."""
     result = conn.execute(
-        "INSERT INTO ingest_runs (started_at, status, symbols) "
-        "VALUES (current_timestamp, 'running', ?) RETURNING run_id",
+        "INSERT INTO pipeline_runs (started_at, overall_status, symbols) "
+        "VALUES (current_timestamp, 'running', ?) RETURNING pipeline_run_id",
         [",".join(symbols)],
     )
     return result.fetchone()[0]
 
 
-def log_run_end(
+def log_run_update(
     conn: duckdb.DuckDBPyConnection,
     run_id: int,
-    status: str,
-    record_count: int | None = None,
+    *,
+    overall_status: str | None = None,
+    ingest_status: str | None = None,
+    dbt_status: str | None = None,
+    failed_phase: str | None = None,
     error_message: str | None = None,
+    record_count: int | None = None,
+    ended: bool = False,
 ) -> None:
-    """Update an ingest_runs row with final status and timing."""
+    """Update a pipeline_runs row. Only sets fields that are provided (non-None)."""
+    sets: list[str] = []
+    params: list = []
+
+    if ended:
+        sets.append("ended_at = current_timestamp")
+    if overall_status is not None:
+        sets.append("overall_status = ?")
+        params.append(overall_status)
+    if ingest_status is not None:
+        sets.append("ingest_status = ?")
+        params.append(ingest_status)
+    if dbt_status is not None:
+        sets.append("dbt_status = ?")
+        params.append(dbt_status)
+    if failed_phase is not None:
+        sets.append("failed_phase = ?")
+        params.append(failed_phase)
+    if error_message is not None:
+        sets.append("error_message = ?")
+        params.append(error_message)
+    if record_count is not None:
+        sets.append("record_count = ?")
+        params.append(record_count)
+
+    if not sets:
+        return
+
+    params.append(run_id)
     conn.execute(
-        "UPDATE ingest_runs SET ended_at = current_timestamp, status = ?, "
-        "record_count = ?, error_message = ? WHERE run_id = ?",
-        [status, record_count, error_message, run_id],
+        f"UPDATE pipeline_runs SET {', '.join(sets)} WHERE pipeline_run_id = ?",
+        params,
     )

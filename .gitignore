@@ -1,6 +1,5 @@
 # AI Asstistance
 CLAUDE.md
-AGENTS.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -23,3 +22,4 @@ dbt/dbt_packages/
 dbt/target/
 dbt/logs/
 dbt/package-lock.yml
+dbt/.user.yml
