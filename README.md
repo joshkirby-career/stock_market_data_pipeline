@@ -71,7 +71,7 @@ stock_market_data_pipeline/
 ```bash
 # Clone the repo
 git clone https://github.com/joshkirby-career/stock_market_data_pipeline
-cd stock-market-data-pipeline/stock_market_data_pipeline
+cd stock-market-data-pipeline
 
 # Create and activate a virtual environment
 python -m venv ../venv
@@ -121,10 +121,15 @@ streamlit run dashboard/app.py
 This opens a Streamlit app in your browser with five sections:
 
 - **Latest Prices** — summary cards showing each symbol's most recent close and daily change
+![Latest Prices Visual](images/latest_prices.png)   
 - **Price & Moving Averages** — line chart with 7-day and 30-day MA overlays (single symbol selector)
+![Price and Moving Averages Visual](images/price_ang_moving_avg.png)  
 - **Daily Returns (%)** — bar chart of day-over-day returns color-coded red/green (single symbol selector)
+![Daily Returns Visual](images/daily_returns.png)  
 - **Normalized Performance** — compare relative performance across multiple symbols rebased to 100
+![Normalized Performance Visual](images/normalized_performance.png)  
 - **Pipeline Health** — last pipeline run status, timestamp, and record count
+![Pipeline Health Visual](images/pipeline_health.png)  
 
 Each chart has its own symbol and date range filters. Data is cached for 5 minutes and refreshes automatically when the pipeline runs.
 
@@ -232,3 +237,19 @@ This ensures that any pushed change won't break the install or transformation la
 | daily_return_pct | DOUBLE | Day-over-day return percentage |
 | ma_7d | DOUBLE | 7-day simple moving average |
 | ma_30d | DOUBLE | 30-day simple moving average |
+
+## Future Improvements
+
+This project was built as a functional local pipeline. Below is how I would evolve it toward a production-grade system.
+
+**Centralized configuration** — Variables like ticker symbols, database path, and API rate-limit sleep interval are currently hard-coded across modules. Moving these into a single config file would make the pipeline easier to customize and reduce the risk of inconsistencies when values change.
+
+**API resilience** — API calls currently fail immediately on error. Adding retry logic with exponential backoff would make ingestion more robust against transient failures like network timeouts or temporary rate-limit responses from Alpha Vantage.
+
+**Failure notifications** — Pipeline failures are logged to the `pipeline_runs` table but require someone to check. Integrating email alerts (or something like Slack webhooks) on failure would surface issues immediately instead of waiting for the next dashboard check.
+
+**Scheduled runs** — The pipeline is currently triggered manually. A scheduler like Airflow would automate daily runs and provide built-in retry, dependency management, and run history.
+
+**Cloud storage and warehouse** — DuckDB works well locally but doesn't support concurrent access or scale beyond a single machine. Migrating to a cloud warehouse with raw data landing in cloud storage (S3) would make the pipeline suitable for team use and larger datasets.
+
+**Secrets management** — The API key is stored in a local `.env` file. In a production deployment, secrets would be managed through a dedicated service like AWS Secrets Manager or CI/CD environment variables.
