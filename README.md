@@ -70,7 +70,7 @@ stock_market_data_pipeline/
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/stock-market-data-pipeline.git
+git clone https://github.com/joshkirby-career/stock_market_data_pipeline
 cd stock-market-data-pipeline/stock_market_data_pipeline
 
 # Create and activate a virtual environment
@@ -127,6 +127,18 @@ This opens a Streamlit app in your browser with five sections:
 - **Pipeline Health** — last pipeline run status, timestamp, and record count
 
 Each chart has its own symbol and date range filters. Data is cached for 5 minutes and refreshes automatically when the pipeline runs.
+
+## CI
+
+A GitHub Actions workflow runs on every push to validate that the project installs and parses cleanly on a fresh machine — no API key or database required.
+
+**What it checks:**
+- Python dependencies install successfully
+- All Python source files compile (catches syntax errors and missing imports)
+- dbt packages install (`dbt deps`)
+- dbt project parses without errors (`dbt parse` — validates SQL, YAML, and ref/source resolution)
+
+This ensures that any pushed change won't break the install or transformation layer, even without running the full pipeline.
 
 ## Design Decisions
 
