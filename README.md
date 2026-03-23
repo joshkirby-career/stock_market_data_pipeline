@@ -131,7 +131,7 @@ Each chart has its own symbol and date range filters. Data is cached for 5 minut
 ## Design Decisions
 
 - **Idempotent upserts** — the pipeline is safe to re-run for the same date without creating duplicates. Uses `INSERT ... ON CONFLICT DO UPDATE`.
-- **Run metadata** — every ingestion run is logged to an `ingest_runs` table with timestamps, status, and record counts for freshness monitoring.
+- **Run metadata** — every pipeline run is logged to a `pipeline_runs` table with per-phase status tracking (ingestion + dbt), failed phase identification, and record counts for freshness monitoring.
 - **Rate-limit awareness** — API calls are spaced 15 seconds apart to stay within Alpha Vantage's free tier (5 calls/min, 25 calls/day).
 - **In-repo dbt profiles** — `profiles.yml` lives in the repo rather than `~/.dbt/`, making the project fully self-contained and portable.
 - **Gated testing** — tests at each layer act as quality gates. Bad data in the raw layer won't propagate to the mart that a dashboard reads from.
@@ -154,17 +154,20 @@ Each chart has its own symbol and date range filters. Data is cached for 5 minut
 | inserted_datetime | TIMESTAMP | First ingestion timestamp |
 | updated_datetime | TIMESTAMP | Last upsert timestamp |
 
-**`ingest_runs`** — Run metadata for monitoring
+**`pipeline_runs`** — Full pipeline run metadata for monitoring
 
 | Column | Type | Description |
 |--------|------|-------------|
-| run_id | INTEGER | Auto-incrementing ID |
+| pipeline_run_id | INTEGER | Auto-incrementing ID |
 | started_at | TIMESTAMP | Run start time |
 | ended_at | TIMESTAMP | Run end time |
-| status | VARCHAR | running / success / failed |
-| symbols | VARCHAR | Comma-separated list of symbols fetched |
-| record_count | INTEGER | Total records processed |
+| overall_status | VARCHAR | running / success / failed |
+| ingest_status | VARCHAR | success / failed (ingestion phase) |
+| dbt_status | VARCHAR | success / failed (dbt phases) |
+| failed_phase | VARCHAR | Name of the phase that failed (if any) |
 | error_message | VARCHAR | Error details (if failed) |
+| record_count | INTEGER | Total records ingested |
+| symbols | VARCHAR | Comma-separated list of symbols fetched |
 
 ### Staging View (created by dbt)
 

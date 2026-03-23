@@ -1,7 +1,7 @@
 """Stock Market Data Pipeline — Streamlit Dashboard.
 
 Reads from the dbt mart table (mart_daily_dashboard) and the pipeline
-metadata table (ingest_runs) to display interactive charts and metrics.
+metadata table (pipeline_runs) to display interactive charts and metrics.
 
 Run from the project root:
     streamlit run dashboard/app.py
@@ -58,10 +58,10 @@ def load_dashboard_data() -> pd.DataFrame:
 
 
 @st.cache_data(ttl=300)
-def load_ingest_runs() -> pd.DataFrame:
+def load_pipeline_runs() -> pd.DataFrame:
     """Load the most recent pipeline runs for the health footer."""
     conn = duckdb.connect(str(DB_PATH), read_only=True)
-    df = conn.sql("SELECT * FROM ingest_runs ORDER BY run_id DESC LIMIT 5").df()
+    df = conn.sql("SELECT * FROM pipeline_runs ORDER BY pipeline_run_id DESC LIMIT 5").df()
     conn.close()
     return df
 
@@ -101,7 +101,7 @@ st.title("Stock Market Data Pipeline Dashboard")
 
 try:
     df = load_dashboard_data()
-    runs_df = load_ingest_runs()
+    runs_df = load_pipeline_runs()
 except Exception as e:
     st.error(f"Could not connect to database: {e}")
     st.info(f"Expected database at: {DB_PATH}")
@@ -276,9 +276,9 @@ else:
 # ---------------------------------------------------------------------------
 # Section 5 — Pipeline Health
 # ---------------------------------------------------------------------------
-# Shows metadata from the ingest_runs table so you can see at a glance
+# Shows metadata from the pipeline_runs table so you can see at a glance
 # whether the pipeline is running successfully and when data was last
-# refreshed. Surfaces the error message if the most recent run failed.
+# refreshed. Surfaces the failed phase and error message if a run failed.
 
 st.divider()
 st.subheader("Pipeline Health")
@@ -286,8 +286,8 @@ st.subheader("Pipeline Health")
 if runs_df.empty:
     st.warning("No pipeline runs found.")
 else:
-    latest_run = runs_df.iloc[0]  # Already sorted DESC by run_id
-    status = latest_run.get("status", "unknown")
+    latest_run = runs_df.iloc[0]  # Already sorted DESC by pipeline_run_id
+    status = latest_run.get("overall_status", "unknown")
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Last Run Status", status.upper())
@@ -297,5 +297,10 @@ else:
     )
     col3.metric("Records Loaded", latest_run.get("record_count", "N/A"))
 
-    if status == "failed" and latest_run.get("error_message"):
-        st.error(f"Error: {latest_run['error_message']}")
+    if status == "failed":
+        failed_phase = latest_run.get("failed_phase")
+        error_msg = latest_run.get("error_message")
+        if failed_phase:
+            st.error(f"Failed during: {failed_phase}")
+        if error_msg:
+            st.error(f"Error: {error_msg}")
