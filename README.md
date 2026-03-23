@@ -74,7 +74,7 @@ python -m venv ../venv
 source ../venv/bin/activate  # or ..\venv\Scripts\activate on Windows
 
 # Install dependencies
-pip install duckdb requests python-dotenv dbt-core dbt-duckdb
+pip install -r requirements.txt
 
 # Install dbt packages
 cd dbt && dbt deps --profiles-dir . --project-dir . && cd ..
@@ -105,6 +105,24 @@ cd dbt
 dbt run --profiles-dir . --project-dir .     # Build all models
 dbt test --profiles-dir . --project-dir .    # Run all 34 tests
 ```
+
+### Launch the dashboard
+
+From the `stock_market_data_pipeline/` directory:
+
+```bash
+streamlit run dashboard/app.py
+```
+
+This opens a Streamlit app in your browser with five sections:
+
+- **Latest Prices** — summary cards showing each symbol's most recent close and daily change
+- **Price & Moving Averages** — line chart with 7-day and 30-day MA overlays (single symbol selector)
+- **Daily Returns (%)** — bar chart of day-over-day returns color-coded red/green (single symbol selector)
+- **Normalized Performance** — compare relative performance across multiple symbols rebased to 100
+- **Pipeline Health** — last pipeline run status, timestamp, and record count
+
+Each chart has its own symbol and date range filters. Data is cached for 5 minutes and refreshes automatically when the pipeline runs.
 
 ## Design Decisions
 
