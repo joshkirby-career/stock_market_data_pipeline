@@ -71,7 +71,7 @@ stock_market_data_pipeline/
 ```bash
 # Clone the repo
 git clone https://github.com/joshkirby-career/stock_market_data_pipeline
-cd stock-market-data-pipeline
+cd stock_market_data_pipeline
 
 # Create and activate a virtual environment
 python -m venv ../venv
@@ -123,7 +123,7 @@ This opens a Streamlit app in your browser with five sections:
 - **Latest Prices** — summary cards showing each symbol's most recent close and daily change
 ![Latest Prices Visual](images/latest_prices.png)   
 - **Price & Moving Averages** — line chart with 7-day and 30-day MA overlays (single symbol selector)
-![Price and Moving Averages Visual](images/price_ang_moving_avg.png)  
+![Price and Moving Averages Visual](images/price_and_moving_avg.png)  
 - **Daily Returns (%)** — bar chart of day-over-day returns color-coded red/green (single symbol selector)
 ![Daily Returns Visual](images/daily_returns.png)  
 - **Normalized Performance** — compare relative performance across multiple symbols rebased to 100
